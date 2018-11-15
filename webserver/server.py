@@ -1,20 +1,13 @@
 #!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
 
 """
-Columbia W4111 Intro to databases
-Example webserver
-
-To run locally
-
-    python server.py
-
-Go to http://localhost:8111 in your browser
-
-
-A debugger such as "pdb" may be helpful for debugging.
-Read about it online.
+COMS W4111 Introduction to Databases Fall 2018 (Prof. Wu).
+Webserver for project 1. 
+Team: Victoria Yang (vjy2102), Yuxuan Mei (ym2552).
 """
 
+import argparse
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
@@ -23,42 +16,29 @@ from flask import Flask, request, render_template, g, redirect, Response
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--user', default='ym2552', help='username for connecting to the db')
+parser.add_argument('--pwd', required=True, help='password for connecting to the db')
+parser.add_argument('--debug', action='store_true', help='whether to run in debug mode')
+args = parser.parse_args()
 
-
-# XXX: The Database URI should be in the format of: 
-#
-#     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
-#
-# For example, if you had username ewu2493, password foobar, then the following line would be:
-#
-#     DATABASEURI = "postgresql://ewu2493:foobar@<IP_OF_POSTGRE_SQL_SERVER>/postgres"
-#
-# For your convenience, we already set it to the class database
-
-# Use the DB credentials you received by e-mail
-DB_USER = "YOUR_DB_USERNAME_HERE"
-DB_PASSWORD = "YOUR_DB_PASSWORD_HERE"
-
+DB_USER = args.user
+DB_PASSWORD = args.pwd
 DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
+# The Database URI should be in the format of: 
+#     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
+DATABASEURI = "postgresql://{}:{}@{}/w4111".format(DB_USER, DB_PASSWORD, DB_SERVER)
 
-DATABASEURI = "postgresql://"+DB_USER+":"+DB_PASSWORD+"@"+DB_SERVER+"/w4111"
-
-
-#
-# This line creates a database engine that knows how to connect to the URI above
-#
+# Create a database engine that connects to the database of the given URI. 
 engine = create_engine(DATABASEURI)
 
-
-# Here we create a test table and insert some values in it
+# Here we create a table 'test' and insert some values in it
 engine.execute("""DROP TABLE IF EXISTS test;""")
 engine.execute("""CREATE TABLE IF NOT EXISTS test (
   id serial,
   name text
 );""")
 engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
-
-
 
 @app.before_request
 def before_request():
@@ -87,7 +67,6 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-
 #
 # @app.route is a decorator around index() that means:
 #   run index() whenever the user tries to access the "/" path using a GET request
@@ -112,11 +91,8 @@ def index():
 
   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
   """
-
-  # DEBUG: this is debugging code to see what request looks like
-  print request.args
-
-
+  if args.debug:
+    print request.args
   #
   # example of a database query
   #
@@ -125,7 +101,6 @@ def index():
   for result in cursor:
     names.append(result['name'])  # can also be accessed using result[0]
   cursor.close()
-
   #
   # Flask uses Jinja templates, which is an extension to HTML where you can
   # pass data to a template and dynamically generate HTML based on the data
@@ -153,8 +128,6 @@ def index():
   #     {% endfor %}
   #
   context = dict(data = names)
-
-
   #
   # render_template looks in the templates/ folder for files.
   # for example, the below file reads template/index.html
@@ -173,28 +146,25 @@ def index():
 def another():
   return render_template("anotherfile.html")
 
-
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
 def add():
   name = request.form['name']
-  print name
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
+  if args.debug:
+    print name
+  cmd = 'INSERT INTO test(name) VALUES (:name1)';
+  g.conn.execute(text(cmd), name1 = name);
   return redirect('/')
-
 
 @app.route('/login')
 def login():
     abort(401)
     this_is_never_executed()
 
-
 if __name__ == "__main__":
   import click
 
   @click.command()
-  @click.option('--debug', is_flag=True)
   @click.option('--threaded', is_flag=True)
   @click.argument('HOST', default='0.0.0.0')
   @click.argument('PORT', default=8111, type=int)
@@ -210,10 +180,8 @@ if __name__ == "__main__":
         python server.py --help
 
     """
-
     HOST, PORT = host, port
     print "running on %s:%d" % (HOST, PORT)
-    app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
-
+    app.run(host=HOST, port=PORT, threaded=threaded)
 
   run()
