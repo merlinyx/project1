@@ -38,8 +38,8 @@ The following documentation may be helpful for both learning Python and Flask:
 * [Java to Python Cheatsheet](https://github.com/w4111/syllabus/blob/master/java2python.md)
 * [Python tutorial](https://docs.python.org/2/tutorial/)
 * [Learn Python The Hard Way](http://learnpythonthehardway.org/book/)
-* [Flask documentation](flask.pocoo.org)
-* [Flask Tutorial](http://flask.pocoo.org/docs/0.10/tutorial/)
+* [Flask documentation](http://flask.pocoo.org)
+* [Flask Tutorial](http://flask.pocoo.org/docs/latest/tutorial/)
 * [Jinja Template documentation](http://jinja.pocoo.org/)
 * [Jinja Tutorial](https://realpython.com/blog/python/primer-on-jinja-templating/)
 
