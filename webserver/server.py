@@ -7,38 +7,16 @@ Webserver for project 1.
 Team: Victoria Yang (vjy2102), Yuxuan Mei (ym2552).
 """
 
-import argparse
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 
+# Need to create app that is needed for all operations afterwards. 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--user', default='ym2552', help='username for connecting to the db')
-parser.add_argument('--pwd', required=True, help='password for connecting to the db')
-parser.add_argument('--debug', action='store_true', help='whether to run in debug mode')
-args = parser.parse_args()
-
-DB_USER = args.user
-DB_PASSWORD = args.pwd
-DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
-# The Database URI should be in the format of: 
-#     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
-DATABASEURI = "postgresql://{}:{}@{}/w4111".format(DB_USER, DB_PASSWORD, DB_SERVER)
-
-# Create a database engine that connects to the database of the given URI. 
-engine = create_engine(DATABASEURI)
-
-# Here we create a table 'test' and insert some values in it
-engine.execute("""DROP TABLE IF EXISTS test;""")
-engine.execute("""CREATE TABLE IF NOT EXISTS test (
-  id serial,
-  name text
-);""")
-engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+# Have to use this global cache to make this global engine work.
+cache = {'engine' : None}
 
 @app.before_request
 def before_request():
@@ -47,8 +25,9 @@ def before_request():
   (every time you enter an address in the web browser).
   We use it to setup a database connection that can be used throughout the request
 
-  The variable g is globally accessible
+  The variable g is globally accessible for one request.
   """
+  engine = cache['engine']
   try:
     g.conn = engine.connect()
   except:
@@ -91,8 +70,7 @@ def index():
 
   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
   """
-  if args.debug:
-    print request.args
+  if app.debug: print request.args
   #
   # example of a database query
   #
@@ -150,8 +128,7 @@ def another():
 @app.route('/add', methods=['POST'])
 def add():
   name = request.form['name']
-  if args.debug:
-    print name
+  if app.debug: print name
   cmd = 'INSERT INTO test(name) VALUES (:name1)';
   g.conn.execute(text(cmd), name1 = name);
   return redirect('/')
@@ -162,26 +139,34 @@ def login():
     this_is_never_executed()
 
 if __name__ == "__main__":
-  import click
+  import argparse
+  DB_SERVER = "w4111.cisxo09blonu.us-east-1.rds.amazonaws.com"
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--host', default='0.0.0.0', help='host ip address')
+  parser.add_argument('--port', default=8111, help='port number', type=int)
+  parser.add_argument('--user', default='ym2552', help='username for connecting to the db')
+  parser.add_argument('--pwd', required=True, help='password for connecting to the db')
+  parser.add_argument('--debug', action='store_true', help='whether to run in debug mode')
+  parser.add_argument('--threaded', action='store_true', help='whether to run in multi threads')
+  args = parser.parse_args()
+  
+  user = args.user
+  pwd = args.pwd
+  # The Database URI should be in the format of: 
+  #     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
+  DB_URI = 'postgresql://%s:%s@%s/w4111' % (user, pwd, DB_SERVER)
+  # Create a database engine that connects to the database of the given URI. 
+  engine = create_engine(DB_URI)
+  engine.execute("""DROP TABLE IF EXISTS test;""")
+  engine.execute("""CREATE TABLE IF NOT EXISTS test (
+    id serial,
+    name text
+  );""")
+  engine.execute("""INSERT INTO test(name) 
+  VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
+  cache['engine'] = engine
+  if args.debug: print 'engine created'
 
-  @click.command()
-  @click.option('--threaded', is_flag=True)
-  @click.argument('HOST', default='0.0.0.0')
-  @click.argument('PORT', default=8111, type=int)
-  def run(debug, threaded, host, port):
-    """
-    This function handles command line parameters.
-    Run the server using
-
-        python server.py
-
-    Show the help text using
-
-        python server.py --help
-
-    """
-    HOST, PORT = host, port
-    print "running on %s:%d" % (HOST, PORT)
-    app.run(host=HOST, port=PORT, threaded=threaded)
-
-  run()
+  HOST, PORT = args.host, args.port
+  print 'running on %s:%d' % (HOST, PORT)
+  app.run(host=HOST, port=PORT, debug=args.debug, threaded=args.threaded)
