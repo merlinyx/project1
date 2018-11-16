@@ -9,7 +9,6 @@ class Actor:
         self.actor_gender = row[11]
         self.actor_img = row[12]
         self.character_name = row[14]
-        self.company_imdblink = row[17]
-        self.company_name = row[18]
+
 
         
