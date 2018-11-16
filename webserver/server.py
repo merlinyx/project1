@@ -12,6 +12,7 @@ from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
 from film import Film
+from Actor import Actor
 
 # Need to create app that is needed for all operations afterwards. 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
