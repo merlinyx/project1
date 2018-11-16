@@ -50,15 +50,6 @@ def teardown_request(exception):
 # Homepage route.
 @app.route('/')
 def index():
-  """
-  request is a special object that Flask provides to access web request information:
-
-  request.method:   "GET" or "POST"
-  request.form:     if the browser submitted a form, this contains the data in the form
-  request.args:     dictionary of URL arguments e.g., {a:1, b:2} for http://localhost?a=1&b=2
-
-  See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
-  """
   if app.debug: print request.args
   # List 10 films.
   cursor = g.conn.execute("""SELECT * FROM Film 
@@ -79,6 +70,8 @@ def film():
 
 @app.route('/filter_by_film', methods=['POST'])
 def filter_by_film():
+  if len(request.form['film']) < 1: 
+    return render_template("index.html", **cache)
   if app.debug: print request.args
   filmname = '%' + request.form['film'].lower() + '%'
   if app.debug: print filmname
@@ -97,6 +90,8 @@ def filter_by_film():
 
 @app.route('/filter_by_location', methods=['POST'])
 def filter_by_location():
+  if len(request.form['location']) < 1:
+    return render_template("index.html", **cache)
   if app.debug: print request.args
   location = '%' + request.form['location'].lower() + '%'
   if app.debug: print location
@@ -107,6 +102,38 @@ def filter_by_location():
             AND FilmingLocations.longitude = NYCLocation.longitude)
     WHERE LOWER(NYCLocation.address) LIKE :location_searchstring LIMIT 10;"""
   cursor = g.conn.execute(text(qry), location_searchstring = location)
+  films = []
+  for result in cursor: films.append(Film(result)) 
+  cursor.close()
+  cache['films'] = films
+  return render_template("index.html", **cache)
+
+@app.route('/filter_by_neighborhood/<neighborhood>', methods=['GET'])
+def filter_by_neighborhood(neighborhood):
+  if app.debug: print request.args
+  qry = """SELECT * FROM Film 
+    INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
+    INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
+    INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
+            AND FilmingLocations.longitude = NYCLocation.longitude)
+    WHERE NYCLocation.neighborhood = :neighborhood_str LIMIT 10;"""
+  cursor = g.conn.execute(text(qry), neighborhood_str = neighborhood)
+  films = []
+  for result in cursor: films.append(Film(result)) 
+  cursor.close()
+  cache['films'] = films
+  return render_template("index.html", **cache)
+
+@app.route('/filter_by_borough/<borough>', methods=['GET'])
+def filter_by_borough(borough):
+  if app.debug: print request.args
+  qry = """SELECT * FROM Film 
+    INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
+    INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
+    INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
+            AND FilmingLocations.longitude = NYCLocation.longitude)
+    WHERE NYCLocation.borough = :borough_str LIMIT 10;"""
+  cursor = g.conn.execute(text(qry), borough_str = borough)
   films = []
   for result in cursor: films.append(Film(result)) 
   cursor.close()
