@@ -32,7 +32,7 @@ def before_request():
   try:
     g.conn = engine.connect()
   except:
-    print "uh oh, problem connecting to database"
+    print "error creating temporary connection to the db"
     import traceback; traceback.print_exc()
     g.conn = None
 
@@ -77,16 +77,17 @@ def index():
 def film():
   return render_template("film.html")
 
-@app.route('/filter_by_film', methods=['GET'])
+@app.route('/filter_by_film', methods=['POST'])
 def filter_by_film():
-  filmname = '%' + request.form['film'] + '%'
+  if app.debug: print request.args
+  filmname = '%' + lower(request.form['film']) + '%'
   if app.debug: print filmname
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE Film.title LIKE :film_searchstring LIMIT 10;"""
+    WHERE LOWER(Film.title) LIKE :film_searchstring LIMIT 10;"""
   cursor = g.conn.execute(text(qry), film_searchstring = filmname)
   films = []
   for result in cursor: films.append(Film(result)) 
@@ -94,16 +95,17 @@ def filter_by_film():
   cache['films'] = films
   return render_template("index.html", **cache)
 
-@app.route('/filter_by_location', methods=['GET'])
+@app.route('/filter_by_location', methods=['POST'])
 def filter_by_location():
-  location = '%' + request.form['location'] + '%'
+  if app.debug: print request.args
+  location = '%' + lower(request.form['location']) + '%'
   if app.debug: print location
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE NYCLocation.address LIKE :location_searchstring LIMIT 10;"""
+    WHERE LOWER(NYCLocation.address) LIKE :location_searchstring LIMIT 10;"""
   cursor = g.conn.execute(text(qry), location_searchstring = location)
   films = []
   for result in cursor: films.append(Film(result)) 
