@@ -9,7 +9,7 @@
     <title>NYC Filming Locations</title>
   </head>
   <body>
-    <div class="container">
+    <div class="container-fluid">
       <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="/">NYC Filming Locations</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,7 +23,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 {% for borough in boroughs %}
-                <a class="dropdown-item" href="{{url_for('filter_by_borough')}}">{{borough}}</a>
+                <a class="dropdown-item" href="{{url_for('filter_by_borough', borough=borough)}}">{{borough}}</a>
                 {% endfor %}
               </div>
             </li>
@@ -33,7 +33,7 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 {% for neighborhood in neighborhoods %}
-                <a class="dropdown-item" href="{{url_for('filter_by_neighborhood')}}">{{neighborhood}}</a>
+                <a class="dropdown-item" href="{{url_for('filter_by_neighborhood', neighborhood=neighborhood)}}">{{neighborhood}}</a>
                 {% endfor %}
               </div>
             </li>

@@ -56,7 +56,7 @@ def index():
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
-            AND FilmingLocations.longitude = NYCLocation.longitude) LIMIT 10;""")
+            AND FilmingLocations.longitude = NYCLocation.longitude) LIMIT 30;""")
   films = []
   for result in cursor: films.append(Film(result)) 
   cursor.close()
@@ -80,7 +80,7 @@ def filter_by_film():
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE LOWER(Film.title) LIKE :film_searchstring LIMIT 10;"""
+    WHERE LOWER(Film.title) LIKE :film_searchstring;"""
   cursor = g.conn.execute(text(qry), film_searchstring = filmname)
   films = []
   for result in cursor: films.append(Film(result)) 
@@ -100,7 +100,7 @@ def filter_by_location():
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE LOWER(NYCLocation.address) LIKE :location_searchstring LIMIT 10;"""
+    WHERE LOWER(NYCLocation.address) LIKE :location_searchstring;"""
   cursor = g.conn.execute(text(qry), location_searchstring = location)
   films = []
   for result in cursor: films.append(Film(result)) 
@@ -116,7 +116,7 @@ def filter_by_neighborhood(neighborhood):
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE NYCLocation.neighborhood = :neighborhood_str LIMIT 10;"""
+    WHERE NYCLocation.neighborhood = :neighborhood_str;"""
   cursor = g.conn.execute(text(qry), neighborhood_str = neighborhood)
   films = []
   for result in cursor: films.append(Film(result)) 
@@ -132,7 +132,7 @@ def filter_by_borough(borough):
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE NYCLocation.borough = :borough_str LIMIT 10;"""
+    WHERE NYCLocation.borough = :borough_str;"""
   cursor = g.conn.execute(text(qry), borough_str = borough)
   films = []
   for result in cursor: films.append(Film(result)) 
