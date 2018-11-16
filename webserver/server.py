@@ -76,7 +76,7 @@ def film():
     INNER JOIN CompanyCredits ON (CompanyCredits.film_imdblink = Film.imdblink) 
     INNER Join Company ON (CompanyCredits.company_imdblink = Company.imdblink) LIMIT 30;""")
   actors = []
-  for result in cursor: actors.append(Film(result)) 
+  for result in cursor: actors.append(Actor(result)) 
   cursor.close()
   cache['actors'] = actors
   return render_template("film.html", **cache)
