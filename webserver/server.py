@@ -72,14 +72,12 @@ def actor_details():
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN Appearances ON Film.imdblink = Appearances.film_imdblink
     INNER JOIN Actor ON (Appearances.actor_imdblink = Actor.imdblink)
-    INNER JOIN Character ON (Appearances.cid = Character.cid) 
-    INNER JOIN CompanyCredits ON (CompanyCredits.film_imdblink = Film.imdblink) 
-    INNER Join Company ON (CompanyCredits.company_imdblink = Company.imdblink) LIMIT 30;""")
+    INNER JOIN Character ON (Appearances.cid = Character.cid) LIMIT 30;""")
   actors = []
   for result in cursor: actors.append(Actor(result)) 
   cursor.close()
   cache['actors'] = actors
-  return render_template("film.html", **cache)
+  return render_template("actor-details.html", **cache)
 
 # Film company details page route.
 @app.route('/company_details')
@@ -92,7 +90,7 @@ def company_details():
   for result in cursor: companies.append(Company(result)) 
   cursor.close()
   cache['companies'] = companies
-  return render_template("film.html", **cache)
+  return render_template("company-details.html", **cache)
 
 @app.route('/filter_by_film', methods=['POST'])
 def filter_by_film():
