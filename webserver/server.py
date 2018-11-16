@@ -64,9 +64,9 @@ def index():
   cache['films'] = films
   return render_template("index.html", **cache)
 
-# Film details page route.
-@app.route('/film')
-def film():
+# Film actor details page route.
+@app.route('/actor_details')
+def actor_details():
   if app.debug: print request.args
   cursor = g.conn.execute("""SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
@@ -79,6 +79,19 @@ def film():
   for result in cursor: actors.append(Actor(result)) 
   cursor.close()
   cache['actors'] = actors
+  return render_template("film.html", **cache)
+
+# Film company details page route.
+@app.route('/company_details')
+def company_details():
+  if app.debug: print request.args
+  cursor = g.conn.execute("""SELECT * FROM Film 
+    INNER JOIN CompanyCredits ON (CompanyCredits.film_imdblink = Film.imdblink) 
+    INNER Join Company ON (CompanyCredits.company_imdblink = Company.imdblink) LIMIT 30;""")
+  companies = []
+  for result in cursor: companies.append(Company(result)) 
+  cursor.close()
+  cache['companies'] = companies
   return render_template("film.html", **cache)
 
 @app.route('/filter_by_film', methods=['POST'])

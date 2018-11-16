@@ -54,7 +54,7 @@
           <tr>
             <th>Film</th><th>Year</th><th>Filmmaker</th>
             <th>Location</th><th>Neighborhood</th><th>Borough</th>
-            <th>Details</th>
+            <th>Actor Details</th><th>Company Details</th>
           <tr>
         </thead>
         <tbody>
@@ -66,7 +66,8 @@
             <td><a href="{{film.gmap_url}}">{{ film.location }}</a></td>
             <td>{{ film.neighborhood }}</td>
             <td>{{ film.borough }}</td>
-            <td><a href="/film">View</a></td>
+            <td><a href="/actor_details">View</a></td>
+            <td><a href="/company_details">View</a></td>
           </tr>
           {% endfor %}
         </tbody>
