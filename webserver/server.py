@@ -66,7 +66,19 @@ def index():
 # Film details page route.
 @app.route('/film')
 def film():
-  return render_template("film.html")
+  if app.debug: print request.args
+  cursor = g.conn.execute("""SELECT * FROM Film 
+    INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
+    INNER JOIN Appearances ON Film.imdblink = Appearances.film_imdblink
+    INNER JOIN Actor ON (Appearances.actor_imdblink = Actor.imdblink)
+    INNER JOIN Character ON (Appearances.cid = Character.cid) 
+    INNER JOIN CompanyCredits ON (CompanyCredits.film_imdblink = Film.imdblink) 
+    INNER Join Company ON (CompanyCredits.company_imdblink = Company.imdblink) LIMIT 30;""")
+  actors = []
+  for result in cursor: actors.append(Film(result)) 
+  cursor.close()
+  cache['actors'] = actors
+  return render_template("film.html", **cache)
 
 @app.route('/filter_by_film', methods=['POST'])
 def filter_by_film():
