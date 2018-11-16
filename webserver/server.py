@@ -80,7 +80,7 @@ def film():
 @app.route('/filter_by_film', methods=['POST'])
 def filter_by_film():
   if app.debug: print request.args
-  filmname = '%' + lower(request.form['film']) + '%'
+  filmname = '%' + request.form['film'].lower() + '%'
   if app.debug: print filmname
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
@@ -98,7 +98,7 @@ def filter_by_film():
 @app.route('/filter_by_location', methods=['POST'])
 def filter_by_location():
   if app.debug: print request.args
-  location = '%' + lower(request.form['location']) + '%'
+  location = '%' + request.form['location'].lower() + '%'
   if app.debug: print location
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
