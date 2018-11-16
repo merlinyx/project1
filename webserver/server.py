@@ -11,6 +11,7 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response
+from film import Film
 
 # Need to create app that is needed for all operations afterwards. 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -74,11 +75,15 @@ def index():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
+  cursor = g.conn.execute("""SELECT * FROM Film INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
+    INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
+    INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
+            AND FilmingLocations.longitude = NYCLocation.longitude) LIMIT 10;""")
+  films = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    films.append(Film(result)) 
   cursor.close()
+  cache['films'] = films
   #
   # Flask uses Jinja templates, which is an extension to HTML where you can
   # pass data to a template and dynamically generate HTML based on the data
@@ -105,12 +110,11 @@ def index():
   #     <div>{{n}}</div>
   #     {% endfor %}
   #
-  context = dict(data = names)
   #
   # render_template looks in the templates/ folder for files.
   # for example, the below file reads template/index.html
   #
-  return render_template("index.html", **context)
+  return render_template("index.html", **cache)
 
 #
 # This is an example of a different path.  You can see it at
@@ -120,9 +124,9 @@ def index():
 # notice that the functio name is another() rather than index()
 # the functions for each app.route needs to have different names
 #
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
+@app.route('/film')
+def film():
+  return render_template("film.html")
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
@@ -132,6 +136,15 @@ def add():
   cmd = 'INSERT INTO test(name) VALUES (:name1)';
   g.conn.execute(text(cmd), name1 = name);
   return redirect('/')
+
+@app.route('/filter_by_film', methods=['GET'])
+def add():
+  filmname = request.form['film']
+  if app.debug: print filmname
+  qry = """SELECT """
+  cmd = 'INSERT INTO test(name) VALUES (:name1)';
+  g.conn.execute(text(cmd), name1 = name);
+  return render_template("index.html", **cache)
 
 @app.route('/login')
 def login():
@@ -157,15 +170,32 @@ if __name__ == "__main__":
   DB_URI = 'postgresql://%s:%s@%s/w4111' % (user, pwd, DB_SERVER)
   # Create a database engine that connects to the database of the given URI. 
   engine = create_engine(DB_URI)
-  engine.execute("""DROP TABLE IF EXISTS test;""")
-  engine.execute("""CREATE TABLE IF NOT EXISTS test (
-    id serial,
-    name text
-  );""")
-  engine.execute("""INSERT INTO test(name) 
-  VALUES ('grace hopper'), ('alan turing'), ('ada lovelace');""")
   cache['engine'] = engine
   if args.debug: print 'engine created'
+
+  try:
+    g.conn = engine.connect()
+  except:
+    print "uh oh, problem connecting to database"
+    import traceback; traceback.print_exc()
+    g.conn = None
+  
+  cursor = g.conn.execute("""SELECT DISTINCT borough from NYCLocation;""")
+  boroughs = []
+  for result in cursor: boroughs.append(result[0])
+  cursor.close()
+  cache['boroughs'] = boroughs
+
+  cursor = g.conn.execute("""SELECT DISTINCT neighborhood from NYCLocation;""")
+  neighborhoods = []
+  for result in cursor: neighborhoods.append(result[0])
+  cursor.close()
+  cache['neighborhoods'] = neighborhoods
+
+  try:
+    g.conn.close()
+  except Exception as e:
+    pass
 
   HOST, PORT = args.host, args.port
   print 'running on %s:%d' % (HOST, PORT)

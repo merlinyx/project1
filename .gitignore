@@ -9,3 +9,4 @@ __pycache__/
 .webassets-cache
 
 .DS_Store
+*.code-workspace

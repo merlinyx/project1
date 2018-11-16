@@ -1,29 +1,83 @@
-<html>
-  <style>
-    body{ 
-      font-size: 15pt;
-      font-family: arial;
-    }
-  </style>
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <title>NYC Filming Locations</title>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">NYC Filming Locations</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Borough
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                {% for borough in boroughs %}
+                <a class="dropdown-item" href="/filter_by_borough">{{borough}}</a>
+                {% endfor %}
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Neighborhood
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                {% for neighborhood in neighborhoods %}
+                <a class="dropdown-item" href="/filter_by_neighborhood">{{neighborhood}}</a>
+                {% endfor %}
+              </div>
+            </li>
+          </ul>
+          <form class="form-inline my-2 my-lg-0" method="GET" action="/filter_by_film">
+            <input class="form-control mr-sm-2" name="film" type="search" placeholder="Enter film name" aria-label="Search-Location">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search Film</button>
+          </form>
+          <form class="form-inline my-2 my-lg-0" method="GET" action="/filter_by_location">
+            <input class="form-control mr-sm-2" name="location" type="search" placeholder="Enter location name" aria-label="Search-Film">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search Location</button>
+          </form>
+        </div>
+      </nav>
 
-
-<body>
-  <h1>Some famous Computer Scientists</h1>
-  <div>{{data}}</div>
-
-  <div>
-    {% for n in data %}
-    <div>{{n}}</div>
-    {% endfor %}
-  </div>
-
-<p><a href="/another">Go to the other page</a></p>
-
-<form method="POST" action="/add">
-<p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
-</form>
-
-</body>
-
-
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Film</th><th>Year</th><th>Filmmaker</th>
+            <th>Location</th><th>Neighborhood</th><th>Borough</th>
+            <th>Details</th>
+          <tr>
+        </thead>
+        <tbody>
+          {% for film in films %}
+          <tr>
+            <td><a href="{{film.film_imdblink}}">{{ film.name }}</a></td>
+            <td>{{ film.year }}</td>
+            <td><a href="{{film.filmmaker_imdblink}}">{{ film.filmmaker }}</a></td>
+            <td><a href="{{film.gmap_url}}">{{ film.location }}</a></td>
+            <td>{{ film.neighborhood }}</td>
+            <td>{{ film.borough }}</td>
+            <td><a href="/film">View</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  </body>
 </html>
+
+
