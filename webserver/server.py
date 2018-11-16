@@ -47,19 +47,7 @@ def teardown_request(exception):
   except Exception as e:
     pass
 
-#
-# @app.route is a decorator around index() that means:
-#   run index() whenever the user tries to access the "/" path using a GET request
-#
-# If you wanted the user to go to e.g., localhost:8111/foobar/ with POST or GET then you could use
-#
-#       @app.route("/foobar/", methods=["POST", "GET"])
-#
-# PROTIP: (the trailing / in the path is important)
-# 
-# see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
-# see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
-#
+# Homepage route.
 @app.route('/')
 def index():
   """
@@ -72,84 +60,56 @@ def index():
   See its API: http://flask.pocoo.org/docs/0.10/api/#incoming-request-data
   """
   if app.debug: print request.args
-  #
-  # example of a database query
-  #
-  cursor = g.conn.execute("""SELECT * FROM Film INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
+  # List 10 films.
+  cursor = g.conn.execute("""SELECT * FROM Film 
+    INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude) LIMIT 10;""")
   films = []
-  for result in cursor:
-    films.append(Film(result)) 
+  for result in cursor: films.append(Film(result)) 
   cursor.close()
   cache['films'] = films
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
-  #
-  # render_template looks in the templates/ folder for files.
-  # for example, the below file reads template/index.html
-  #
   return render_template("index.html", **cache)
 
-#
-# This is an example of a different path.  You can see it at
-# 
-#     localhost:8111/another
-#
-# notice that the functio name is another() rather than index()
-# the functions for each app.route needs to have different names
-#
+# Film details page route.
 @app.route('/film')
 def film():
   return render_template("film.html")
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  if app.debug: print name
-  cmd = 'INSERT INTO test(name) VALUES (:name1)';
-  g.conn.execute(text(cmd), name1 = name);
-  return redirect('/')
-
 @app.route('/filter_by_film', methods=['GET'])
-def add():
-  filmname = request.form['film']
+def filter_by_film():
+  filmname = '%' + request.form['film'] + '%'
   if app.debug: print filmname
-  qry = """SELECT """
-  cmd = 'INSERT INTO test(name) VALUES (:name1)';
-  g.conn.execute(text(cmd), name1 = name);
+  qry = """SELECT * FROM Film 
+    INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
+    INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
+    INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
+            AND FilmingLocations.longitude = NYCLocation.longitude)
+    WHERE Film.title LIKE :film_searchstring LIMIT 10;"""
+  cursor = g.conn.execute(text(qry), film_searchstring = filmname)
+  films = []
+  for result in cursor: films.append(Film(result)) 
+  cursor.close()
+  cache['films'] = films
   return render_template("index.html", **cache)
 
-@app.route('/login')
-def login():
-    abort(401)
-    this_is_never_executed()
+@app.route('/filter_by_location', methods=['GET'])
+def filter_by_location():
+  location = '%' + request.form['location'] + '%'
+  if app.debug: print location
+  qry = """SELECT * FROM Film 
+    INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
+    INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
+    INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
+            AND FilmingLocations.longitude = NYCLocation.longitude)
+    WHERE NYCLocation.address LIKE :location_searchstring LIMIT 10;"""
+  cursor = g.conn.execute(text(qry), location_searchstring = location)
+  films = []
+  for result in cursor: films.append(Film(result)) 
+  cursor.close()
+  cache['films'] = films
+  return render_template("index.html", **cache)
 
 if __name__ == "__main__":
   import argparse
@@ -163,40 +123,42 @@ if __name__ == "__main__":
   parser.add_argument('--threaded', action='store_true', help='whether to run in multi threads')
   args = parser.parse_args()
   
-  user = args.user
-  pwd = args.pwd
   # The Database URI should be in the format of: 
   #     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/<DB_NAME>
+  user = args.user
+  pwd = args.pwd
   DB_URI = 'postgresql://%s:%s@%s/w4111' % (user, pwd, DB_SERVER)
   # Create a database engine that connects to the database of the given URI. 
   engine = create_engine(DB_URI)
   cache['engine'] = engine
   if args.debug: print 'engine created'
 
+  # Below is the first batch of queries to prepare the dropdown items.
   try:
-    g.conn = engine.connect()
+    tconn = engine.connect()
   except:
-    print "uh oh, problem connecting to database"
+    print "error creating temporary connection to the db"
     import traceback; traceback.print_exc()
-    g.conn = None
+    tconn = None
   
-  cursor = g.conn.execute("""SELECT DISTINCT borough from NYCLocation;""")
+  cursor = tconn.execute("""SELECT DISTINCT borough from NYCLocation;""")
   boroughs = []
   for result in cursor: boroughs.append(result[0])
   cursor.close()
   cache['boroughs'] = boroughs
 
-  cursor = g.conn.execute("""SELECT DISTINCT neighborhood from NYCLocation;""")
+  cursor = tconn.execute("""SELECT DISTINCT neighborhood from NYCLocation;""")
   neighborhoods = []
   for result in cursor: neighborhoods.append(result[0])
   cursor.close()
   cache['neighborhoods'] = neighborhoods
 
   try:
-    g.conn.close()
+    tconn.close()
   except Exception as e:
     pass
 
+  # Now ready to serve the page.
   HOST, PORT = args.host, args.port
   print 'running on %s:%d' % (HOST, PORT)
   app.run(host=HOST, port=PORT, debug=args.debug, threaded=args.threaded)
