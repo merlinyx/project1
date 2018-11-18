@@ -53,7 +53,8 @@ def teardown_request(exception):
 @app.route('/')
 def index():
   if app.debug: print request.args
-  # List 10 films.
+  if len(cache['films']) > 0: return render_template("index.html", **cache)
+  # Default to list 30 films.
   cursor = g.conn.execute("""SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
@@ -69,15 +70,15 @@ def index():
 @app.route('/actor_details', methods=['POST'])
 def actor_details():
   if app.debug: print request.args
-  filmname = '%' + request.form['actor-details'].lower() + '%'
+  filmname = request.form['actor-details'].lower()
   if app.debug: print filmname
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN Appearances ON Film.imdblink = Appearances.film_imdblink
     INNER JOIN Actor ON (Appearances.actor_imdblink = Actor.imdblink)
     INNER JOIN Character ON (Appearances.cid = Character.cid)  
-    WHERE LOWER(Film.title) LIKE :actor_searchstring;"""
-  cursor = g.conn.execute(text(qry), actor_searchstring = filmname)
+    WHERE LOWER(Film.title) = :film;"""
+  cursor = g.conn.execute(text(qry), film = filmname)
   actors = []
   for result in cursor: actors.append(Actor(result)) 
   cursor.close()
@@ -88,32 +89,33 @@ def actor_details():
 @app.route('/company_details', methods=['POST'])
 def company_details():
   if app.debug: print request.args
-  filmname = '%' + request.form['company-details'].lower() + '%'
+  filmname = request.form['company-details'].lower()
   if app.debug: print filmname
   qry = """SELECT * FROM Film 
     INNER JOIN CompanyCredits ON (CompanyCredits.film_imdblink = Film.imdblink) 
     INNER Join Company ON (CompanyCredits.company_imdblink = Company.imdblink) 
-    WHERE LOWER(Film.title) LIKE :company_searchstring;"""
-  cursor = g.conn.execute(text(qry), company_searchstring = filmname)
+    WHERE LOWER(Film.title) = :film;"""
+  cursor = g.conn.execute(text(qry), film = filmname)
   companies = []
   for result in cursor: companies.append(Company(result)) 
   cursor.close()
   cache['companies'] = companies
   return render_template("company-details.html", **cache)
 
+# Film search results route.
 @app.route('/filter_by_film', methods=['POST'])
 def filter_by_film():
   if len(request.form['film']) < 1: 
     return render_template("index.html", **cache)
   if app.debug: print request.args
-  filmname = '%' + request.form['film'].lower() + '%'
+  filmname = request.form['film'].lower()
   if app.debug: print filmname
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE LOWER(Film.title) LIKE :film_searchstring;"""
+    WHERE LOWER(Film.title) LIKE %:film_searchstring%;"""
   cursor = g.conn.execute(text(qry), film_searchstring = filmname)
   films = []
   for result in cursor: films.append(Film(result)) 
@@ -121,19 +123,20 @@ def filter_by_film():
   cache['films'] = films
   return render_template("index.html", **cache)
 
+# Location search results route.
 @app.route('/filter_by_location', methods=['POST'])
 def filter_by_location():
   if len(request.form['location']) < 1:
     return render_template("index.html", **cache)
   if app.debug: print request.args
-  location = '%' + request.form['location'].lower() + '%'
+  location = request.form['location'].lower()
   if app.debug: print location
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE LOWER(NYCLocation.address) LIKE :location_searchstring;"""
+    WHERE LOWER(NYCLocation.address) LIKE %:location_searchstring%;"""
   cursor = g.conn.execute(text(qry), location_searchstring = location)
   films = []
   for result in cursor: films.append(Film(result)) 
@@ -141,6 +144,7 @@ def filter_by_location():
   cache['films'] = films
   return render_template("index.html", **cache)
 
+# Neighborbood dropdown results route.
 @app.route('/filter_by_neighborhood/<neighborhood>', methods=['GET'])
 def filter_by_neighborhood(neighborhood):
   if app.debug: print request.args
@@ -157,6 +161,7 @@ def filter_by_neighborhood(neighborhood):
   cache['films'] = films
   return render_template("index.html", **cache)
 
+# Borough dropdown results route.
 @app.route('/filter_by_borough/<borough>', methods=['GET'])
 def filter_by_borough(borough):
   if app.debug: print request.args

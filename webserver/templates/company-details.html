@@ -6,23 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <title>Company Information</title>
+    <title>Company Details</title>
   </head>
   <body>
-    <h1>Company Information</h1>
+    <div class="container-fluid">
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav"><li><a href="/">Home</a></li></ul>
+        </div>
+        <div class="navbar-brand">
+          NYC Filming Locations - Company credits for <a href="{{current_film_imdblink}}">{{current_film}}</a> directed by <a href="{{current_filmmaker_imdblink}}">{{current_filmmaker}}</a>
+        </div>
+      </nav>
       <table class="table table-striped">
         <thead>
-          <tr>
-            <th>Film</th>
-            <th>Company</th><th>Home</th>
-          <tr>
+          <tr><th>Production Company</th><tr>
         </thead>
         <tbody>
           {% for company in companies %}
           <tr>
-            <td><a href="{{company.film_imdblink}}">{{ company.film_name }}</a></td>
             <td><a href="{{company.company_imdblink}}">{{ company.company_name }}</a></td>
-            <td><a href="/">Return home</a></td>
           </tr>
           {% endfor %}
         </tbody>
