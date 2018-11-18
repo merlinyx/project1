@@ -76,8 +76,8 @@ def actor_details():
     INNER JOIN Appearances ON Film.imdblink = Appearances.film_imdblink
     INNER JOIN Actor ON (Appearances.actor_imdblink = Actor.imdblink)
     INNER JOIN Character ON (Appearances.cid = Character.cid)  
-    WHERE LOWER(Film.title) LIKE :film_searchstring;""")
-  cursor = g.conn.execute(text(qry), film_searchstring = filmname)
+    WHERE LOWER(Film.title) LIKE :actor_searchstring;""")
+  cursor = g.conn.execute(text(qry), actor_searchstring = filmname)
   actors = []
   for result in cursor: actors.append(Actor(result)) 
   cursor.close()
