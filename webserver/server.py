@@ -66,7 +66,7 @@ def index():
   return render_template("index.html", **cache)
 
 # Film actor details page route.
-@app.route('/actor_details')
+@app.route('/actor_details', methods=['POST'])
 def actor_details():
   if app.debug: print request.args
   filmname = '%' + request.form['actor-details'].lower() + '%'
@@ -85,7 +85,7 @@ def actor_details():
   return render_template("actor-details.html", **cache)
 
 # Film company details page route.
-@app.route('/company_details')
+@app.route('/company_details', methods=['POST'])
 def company_details():
   if app.debug: print request.args
   cursor = g.conn.execute("""SELECT * FROM Film 
