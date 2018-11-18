@@ -53,7 +53,7 @@ def teardown_request(exception):
 @app.route('/')
 def index():
   if app.debug: print request.args
-  if cache['films'] and len(cache['films']) > 0: 
+  if 'films' in cache and len(cache['films']) > 0: 
     return render_template("index.html", **cache)
   # Default to list 30 films.
   cursor = g.conn.execute("""SELECT * FROM Film 
