@@ -4,6 +4,7 @@ class Film:
     def __init__(self, row):
         self.year = row[0]
         self.name = row[1]
+        self.url_encoded_name = row[2]
         self.film_imdblink = row[3]
         self.filmmaker = row[5]
         self.filmmaker_imdblink = row[6]
