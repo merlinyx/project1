@@ -66,7 +66,11 @@
             <td><a href="{{film.gmap_url}}">{{ film.location }}</a></td>
             <td>{{ film.neighborhood }}</td>
             <td>{{ film.borough }}</td>
-            <td><a href="/actor_details">View</a></td>
+            <td><form action="next.jsp" method="POST" name="actor-details">
+                <input type="VIEW" name="t1" id="t1">
+                <input type="text" name="t2" id="t2">
+                < a href="/actor_details" onclick="document.actor-details.submit();">Submit</a>
+                </form></td>
             <td><a href="/company_details">View</a></td>
           </tr>
           {% endfor %}
