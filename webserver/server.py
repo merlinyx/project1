@@ -72,7 +72,6 @@ def index():
 def actor_details(url_encoded_name, year):
   if app.debug: print request.args
   qry = """SELECT * FROM Film 
-    INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN Appearances ON Film.imdblink = Appearances.film_imdblink
     INNER JOIN Actor ON (Appearances.actor_imdblink = Actor.imdblink)
     INNER JOIN Character ON (Appearances.cid = Character.cid)  
@@ -84,8 +83,6 @@ def actor_details(url_encoded_name, year):
   cache['actors'] = actors
   cache['current_film'] = actors[0].film_name
   cache['current_film_imdblink'] = actors[0].film_imdblink
-  cache['current_filmmaker'] = actors[0].filmmaker
-  cache['current_filmmaker_imdblink'] = actors[0].filmmaker_imdblink
   return render_template("actor-details.html", **cache)
 
 # Film company details page route.
@@ -103,8 +100,6 @@ def company_details(url_encoded_name, year):
   cache['companies'] = companies
   cache['current_film'] = companies[0].film_name
   cache['current_film_imdblink'] = companies[0].film_imdblink
-  cache['current_filmmaker'] = companies[0].filmmaker
-  cache['current_filmmaker_imdblink'] = companies[0].filmmaker_imdblink
   return render_template("company-details.html", **cache)
 
 # Film search results route.
