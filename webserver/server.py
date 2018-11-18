@@ -88,9 +88,13 @@ def actor_details():
 @app.route('/company_details', methods=['POST'])
 def company_details():
   if app.debug: print request.args
-  cursor = g.conn.execute("""SELECT * FROM Film 
+  filmname = '%' + request.form['company-details'].lower() + '%'
+  if app.debug: print filmname
+  qry = """SELECT * FROM Film 
     INNER JOIN CompanyCredits ON (CompanyCredits.film_imdblink = Film.imdblink) 
-    INNER Join Company ON (CompanyCredits.company_imdblink = Company.imdblink) LIMIT 30;""")
+    INNER Join Company ON (CompanyCredits.company_imdblink = Company.imdblink) 
+    WHERE LOWER(Film.title) LIKE :company_searchstring;"""
+  cursor = g.conn.execute(text(qry), company_searchstring = filmname)
   companies = []
   for result in cursor: companies.append(Company(result)) 
   cursor.close()
