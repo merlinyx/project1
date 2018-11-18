@@ -19,15 +19,17 @@
           <tr>
         </thead>
         <tbody>
+          {% for actor in actors %}
           <tr>
-            <td><a href="{{Actor.film_imdblink}}">{{ Actor.film_name }}</a></td>
-            <td><a href="{{Actor.filmmaker_imdblink}}">{{ Actor.filmmaker }}</a></td>
-            <td><a href="{{Actor.actor_imdblink}}">{{ Actor.actor_name }}</a></td>
-            <td>{{ Actor.actor_gender }}</td>
-            <td><img src="{{Actor.actor_img}}" alt="{{Actor.actor_name}}"></td>
-            <td>{{ Actor.character_name }}</td>
+            <td><a href="{{actor.film_imdblink}}">{{ actor.film_name }}</a></td>
+            <td><a href="{{actor.filmmaker_imdblink}}">{{ actor.filmmaker }}</a></td>
+            <td><a href="{{actor.actor_imdblink}}">{{ actor.actor_name }}</a></td>
+            <td>{{ actor.actor_gender }}</td>
+            <td><img src="{{actor.actor_img}}" alt="{{actor.actor_name}}"></td>
+            <td>{{ actor.character_name }}</td>
             <td><a href="/">Return home</a></td>
           </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
