@@ -109,14 +109,14 @@ def filter_by_film():
   if len(request.form['film']) < 1: 
     return render_template("index.html", **cache)
   if app.debug: print request.args
-  filmname = request.form['film'].lower()
+  filmname = '%' + request.form['film'].lower() + '%'
   if app.debug: print filmname
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE LOWER(Film.title) LIKE %:film_searchstring%;"""
+    WHERE LOWER(Film.title) LIKE :film_searchstring;"""
   cursor = g.conn.execute(text(qry), film_searchstring = filmname)
   films = []
   for result in cursor: films.append(Film(result)) 
@@ -130,14 +130,14 @@ def filter_by_location():
   if len(request.form['location']) < 1:
     return render_template("index.html", **cache)
   if app.debug: print request.args
-  location = request.form['location'].lower()
+  location = '%' + request.form['location'].lower() + '%'
   if app.debug: print location
   qry = """SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN FilmingLocations ON Film.imdblink = FilmingLocations.film_imdblink
     INNER JOIN NYCLocation ON (FilmingLocations.latitude = NYCLocation.latitude
             AND FilmingLocations.longitude = NYCLocation.longitude)
-    WHERE LOWER(NYCLocation.address) LIKE %:location_searchstring%;"""
+    WHERE LOWER(NYCLocation.address) LIKE :location_searchstring;"""
   cursor = g.conn.execute(text(qry), location_searchstring = location)
   films = []
   for result in cursor: films.append(Film(result)) 

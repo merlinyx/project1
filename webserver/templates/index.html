@@ -67,14 +67,14 @@
             <td>{{ film.neighborhood }}</td>
             <td>{{ film.borough }}</td>
             <td>
-              <form action="/actor_details" method="POST"><button class="btn btn-outline-success my-2 my-sm-0">
-                <input type="submit" name="actor-details" value={{film.name}}>
-              </button></form>
+              <form action="/actor_details" method="POST">
+                <input class="btn btn-outline-success my-2 my-sm-0" type="submit" name="actor-details" value={{film.name}}>
+              </form>
             </td>
             <td>
-              <form action="/company_details" method="POST"><button class="btn btn-outline-success my-2 my-sm-0">
-                <input type="submit" name="company-details" value={{film.name}}>
-              </button></form>
+              <form action="/company_details" method="POST">
+                <input class="btn btn-outline-success my-2 my-sm-0" type="submit" name="company-details" value={{film.name}}>
+              </form>
             </td>
           </tr>
           {% endfor %}
