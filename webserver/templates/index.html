@@ -67,14 +67,18 @@
             <td>{{ film.neighborhood }}</td>
             <td>{{ film.borough }}</td>
             <td>
-              <form action="/actor_details" method="POST">
-                <input class="btn btn-outline-success my-2 my-sm-0" type="submit" name="actor-details" value={{film.name}}>
-              </form>
+              <button class="btn btn-outline-primary my-2 my-sm-0" type="link">
+                <a href="{{url_for('actor_details', url_encoded_name=film.url_encoded_name, year=film.year)}}">
+                  View
+                </a>
+              </button>
             </td>
             <td>
-              <form action="/company_details" method="POST">
-                <input class="btn btn-outline-success my-2 my-sm-0" type="submit" name="company-details" value={{film.name}}>
-              </form>
+              <button class="btn btn-outline-info my-2 my-sm-0" type="link">
+                <a href="{{url_for('company_details', url_encoded_name=film.url_encoded_name, year=film.year)}}">
+                  View
+                </a>
+              </button>
             </td>
           </tr>
           {% endfor %}
