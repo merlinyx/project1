@@ -68,7 +68,7 @@ def index():
   return render_template("index.html", **cache)
 
 # Film actor details page route.
-@app.route('/actor_details/<url_encoded_name>/<year>', methods=['GET'])
+@app.route('/actor_details/<url_encoded_name>/<int:year>', methods=['GET'])
 def actor_details(url_encoded_name, year):
   if app.debug: print request.args
   qry = """SELECT * FROM Film 
@@ -76,7 +76,7 @@ def actor_details(url_encoded_name, year):
     INNER JOIN Appearances ON Film.imdblink = Appearances.film_imdblink
     INNER JOIN Actor ON (Appearances.actor_imdblink = Actor.imdblink)
     INNER JOIN Character ON (Appearances.cid = Character.cid)  
-    WHERE LOWER(Film.url_encoded_name) = :film AND Film.year = :y;"""
+    WHERE Film.url_encoded_name = :film AND Film.year = :y;"""
   cursor = g.conn.execute(text(qry), film = url_encoded_name, y = year)
   actors = []
   for result in cursor: actors.append(Actor(result)) 
@@ -89,14 +89,13 @@ def actor_details(url_encoded_name, year):
   return render_template("actor-details.html", **cache)
 
 # Film company details page route.
-@app.route('/company_details/<url_encoded_name>/<year>', methods=['GET'])
+@app.route('/company_details/<url_encoded_name>/<int:year>', methods=['GET'])
 def company_details(url_encoded_name, year):
   if app.debug: print request.args
-  if app.debug: print filmname
   qry = """SELECT * FROM Film 
     INNER JOIN CompanyCredits ON (CompanyCredits.film_imdblink = Film.imdblink) 
     INNER JOIN Company ON (CompanyCredits.company_imdblink = Company.imdblink) 
-    WHERE LOWER(Film.url_encoded_name) = :film AND Film.year = :y;"""
+    WHERE Film.url_encoded_name = :film AND Film.year = :y;"""
   cursor = g.conn.execute(text(qry), film = url_encoded_name, y = year)
   companies = []
   for result in cursor: companies.append(Company(result))
