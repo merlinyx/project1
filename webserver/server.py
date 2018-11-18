@@ -69,11 +69,15 @@ def index():
 @app.route('/actor_details')
 def actor_details():
   if app.debug: print request.args
+  filmname = '%' + request.form['actor-details'].lower() + '%'
+  if app.debug: print filmname
   cursor = g.conn.execute("""SELECT * FROM Film 
     INNER JOIN Filmmaker ON Film.filmmaker_imdblink = Filmmaker.imdblink
     INNER JOIN Appearances ON Film.imdblink = Appearances.film_imdblink
     INNER JOIN Actor ON (Appearances.actor_imdblink = Actor.imdblink)
-    INNER JOIN Character ON (Appearances.cid = Character.cid) LIMIT 30;""")
+    INNER JOIN Character ON (Appearances.cid = Character.cid)  
+    WHERE LOWER(Film.title) LIKE :film_searchstring;""")
+  cursor = g.conn.execute(text(qry), film_searchstring = filmname)
   actors = []
   for result in cursor: actors.append(Actor(result)) 
   cursor.close()
